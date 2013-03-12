@@ -3,11 +3,6 @@
 #include <firstblood.h>
 
 int main(int argc, char *argv[]){
-	#ifdef _LINUX_CONFIG_H_INCLUDED_
-		printf("%d\n", 1);
-	#else
-		printf("%d\n", 2);
-	#endif
-
+	fb_open_socket();		
 	return 0;
 }

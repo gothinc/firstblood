@@ -5,5 +5,7 @@
 #include <fb_linux_config.h>
 #endif
 
+#define _FB_ERROR_ -1
+
 #endif
 
