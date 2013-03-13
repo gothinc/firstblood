@@ -7,7 +7,7 @@ int fb_open_socket(){
 	char send_buf[255];
 	struct sockaddr_in sockaddr;
 	time_t ticks;
-
+	
 	if((listen_fd = fb_socket(AF_INET, SOCK_STREAM, 0)) == -1) return _FB_ERROR_;
 	memset(send_buf, '0', sizeof(send_buf));		
 	memset(&sockaddr, '0', sizeof(sockaddr));
@@ -22,7 +22,8 @@ int fb_open_socket(){
 		conn_fd = accept(listen_fd, (struct sockaddr *) NULL, NULL);
 		ticks = time(NULL);
 		snprintf(send_buf, sizeof(send_buf), "%.24s\r\n", ctime(&ticks));
-		wt = write(conn_fd, send_buf, strlen(send_buf));
+		if((wt = write(conn_fd, send_buf, strlen(send_buf))) < 0) return -1;
+
 		close(conn_fd);
 		sleep(1);
 	}
