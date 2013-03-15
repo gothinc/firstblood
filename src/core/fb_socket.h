@@ -4,6 +4,7 @@
 #define fb_socket socket
 #define fb_bind bind
 #define _FB_LISTENED_FD_ 8089
+void fb_connect(int listen_fd);
 int fb_open_socket();
 
 #endif
