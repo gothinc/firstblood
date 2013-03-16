@@ -3,7 +3,7 @@
 
 int fb_open_socket(){
 	int listen_fd, i;
-	struct sockaddr_in sockaddr;
+	fb_sockaddr_in sockaddr;
 	
 	if((listen_fd = fb_socket(AF_INET, SOCK_STREAM, 0)) == -1) return _FB_ERROR_;
 	i = 1;
