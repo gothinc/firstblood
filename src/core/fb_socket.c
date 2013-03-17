@@ -62,7 +62,7 @@ void fb_connect(int conn_fd){
 	fb_http_header_t http_header;
 
 	memset(&http_header, '\0', sizeof(http_header));
-	fcntl(conn_fd, F_SETFL, O_NONBLOCK);
+	//fcntl(conn_fd, F_SETFL, O_NONBLOCK);
 
 	fb_get_http_request(conn_fd, &http_header);
 	if(close(conn_fd) < 0){
