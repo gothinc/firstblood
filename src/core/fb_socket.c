@@ -62,12 +62,10 @@ void fb_connect(int conn_fd){
 	fb_http_header_t http_header;
 
 	memset(&http_header, '\0', sizeof(http_header));
-	//fcntl(conn_fd, F_SETFL, O_NONBLOCK);
 
 	fb_get_http_request(conn_fd, &http_header);
-	if(close(conn_fd) < 0){
-		printf("close conn_fd error\n");
-		exit(-1);
+	if(fb_put_http_response(conn_fd, &http_header) <= 0){
+		printf("http response error\n");
 	}
 }
 
