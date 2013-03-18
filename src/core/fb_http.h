@@ -4,6 +4,7 @@
 typedef struct fb_query_string_s{
 	char *key;
 	char *value;
+	char *path;
 } fb_query_string_t;
 
 typedef struct fb_http_req_header_s{

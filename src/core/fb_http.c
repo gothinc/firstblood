@@ -64,9 +64,9 @@ void fb_parse_http_header(char *buf, fb_http_req_header_t *header_info){
 				if(strcmp("GET", temp) == 0){
 					header_info->method = (char *) malloc(strlen(temp) + 1);
 					strncpy(header_info->method, temp, strlen(temp) + 1);
-				}else if(temp[0] == '/'){
-					if(strlen(temp) > 2){
-						fb_del_before(temp, 2, strlen(temp));
+				}else if(temp[0] == '~'){
+					if(strlen(temp) > 1){
+						fb_del_before(temp, 1, strlen(temp));
 						header_info->query_string = (fb_query_string_t **) malloc(sizeof(fb_query_string_t *) * 10);
 						fb_parse_query_string(temp, header_info->query_string, strlen(temp));
 					}else{
@@ -75,6 +75,11 @@ void fb_parse_http_header(char *buf, fb_http_req_header_t *header_info){
 				}
 
 				j = 0;
+			}else if(buf[i] == '?'){
+				temp[j] = '\0';
+				/*todo parse path*/
+				j = 0;
+				temp[j ++] = '~';
 			}else{
 				temp[j ++] = buf[i];
 			}
