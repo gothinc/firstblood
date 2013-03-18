@@ -1,15 +1,33 @@
 #ifndef _FB_HTTP_CONFIG_H_INCLUDED_
 
 #define _FB_HTTP_CONFIG_H_INCLUDED_
-typedef struct fb_http_header_s{
-	int status;
-	char *method;
-	char *query_string;
-} fb_http_header_t;
+typedef struct fb_query_string_s{
+	char *key;
+	char *value;
+} fb_query_string_t;
 
-void fb_get_http_request(int fd, fb_http_header_t *header_info);
-void fb_parse_http_header(char *buf, fb_http_header_t *header_info);
+typedef struct fb_http_req_header_s{
+	char *method;
+	fb_query_string_t **query_string;
+	char *connection;
+	char *cookie;
+	char *host;
+	char *referer;
+	char *user_agent;
+} fb_http_req_header_t;
+
+typedef struct fb_http_res_header_s{
+	unsigned short status;
+	unsigned short content_length;
+	char *connection;
+	char *server;
+} fb_http_res_header_t;
+
+void fb_get_http_request(int fd, fb_http_req_header_t *header_info);
+void fb_parse_http_header(char *buf, fb_http_req_header_t *header_info);
+void fb_parse_query_string(char *req, fb_query_string_t **str, int len);
 int fb_get_http_header_line(int fd, char *buf, int len);
 int read_line(int fd, char *buf, int len);
+int fb_put_http_response(int fd, fb_http_res_header_t *header_info);
 
 #endif

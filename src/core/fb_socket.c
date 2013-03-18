@@ -59,12 +59,13 @@ int fb_open_socket(){
 }
 
 void fb_connect(int conn_fd){
-	fb_http_header_t http_header;
+	fb_http_req_header_t http_req_header;
+	fb_http_res_header_t http_res_header;
 
-	memset(&http_header, '\0', sizeof(http_header));
+	memset(&http_req_header, '\0', sizeof(http_req_header));
 
-	fb_get_http_request(conn_fd, &http_header);
-	if(fb_put_http_response(conn_fd, &http_header) <= 0){
+	fb_get_http_request(conn_fd, &http_req_header);
+	if(fb_put_http_response(conn_fd, &http_res_header) <= 0){
 		printf("http response error\n");
 	}
 }
