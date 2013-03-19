@@ -1,9 +1,30 @@
 #include <fb_core.h>
 #include <fb_config.h>
 
-int fb_put_http_response(int fd, fb_http_res_header_t *header_info){
-	
-	return 1;
+void fb_put_http_response(int fd, fb_http_req_header_t *req_header_info, fb_http_res_header_t *res_header_info){
+	char buf[1024];				
+	memset(buf, 0, sizeof(buf));
+
+	if(strcmp(req_header_info->path, "/index.php") == 0){
+		sprintf(buf, "HTTP/1.1 %d OK\r\n", 200);
+		fb_write_res_header_line(fd, buf, strlen(buf));
+		fb_write_res_header_line(fd, "\r\n", 2);
+		sprintf(buf, "<html>\n<head>\n<title>hi,guy</title>\n</head>\n<body>\n<div>\n<p>welcome to zhaojiangwei</p>\n</div>\n</body>\n</html>\n");
+		fb_write_res_header_line(fd, buf, strlen(buf));
+	}else{
+		sprintf(buf, "HTTP/1.1 %d Page Not Found\r\n", 404);
+		fb_write_res_header_line(fd, buf, strlen(buf));
+		fb_write_res_header_line(fd, "\r\n", 2);
+		sprintf(buf, "<html>\n<head>\n<title>404 Page Not Found</title>\n</head>\n<body>\n<div>\n<p>fuck</p>\n</div>\n</body>\n</html>\n");
+		fb_write_res_header_line(fd, buf, strlen(buf));
+	}
+}
+
+void fb_write_res_header_line(int fd, char *buf, int len){
+	int ret = 0;
+	if((ret = send(fd, buf, len, 0)) <= 0){
+		printf("send error\n");
+	}
 }
 
 void fb_get_http_request(int fd, fb_http_req_header_t *header_info){
@@ -40,8 +61,6 @@ void fb_get_http_request(int fd, fb_http_req_header_t *header_info){
 
 	if(header_info->query_string){
 		while(*header_info->query_string){
-			printf("key:%s\n", (*header_info->query_string)->key);
-			printf("value:%s\n", (*header_info->query_string)->value);
 			free((*header_info->query_string)->key);
 			free((*header_info->query_string)->value);
 			free(*header_info->query_string);
@@ -78,6 +97,8 @@ void fb_parse_http_header(char *buf, fb_http_req_header_t *header_info){
 			}else if(buf[i] == '?'){
 				temp[j] = '\0';
 				/*todo parse path*/
+				header_info->path = (char *) malloc(strlen(temp) + 1);
+				strncpy(header_info->path, temp, strlen(temp) + 1);
 				j = 0;
 				temp[j ++] = '~';
 			}else{
@@ -87,7 +108,7 @@ void fb_parse_http_header(char *buf, fb_http_req_header_t *header_info){
 
 		first = 0;
 	}else{
-
+		/*todo other header_info*/
 	}
 }
 
@@ -140,7 +161,6 @@ int read_line(int fd, char *buf, int len){
 			return _FB_ERROR_;
 		}
 	}
-	//printf("---------------------------以上是接收的------------------------------\n");	
 	buf[num] = '\0';
 	return num;
 }

@@ -4,7 +4,6 @@
 typedef struct fb_query_string_s{
 	char *key;
 	char *value;
-	char *path;
 } fb_query_string_t;
 
 typedef struct fb_http_req_header_s{
@@ -15,6 +14,7 @@ typedef struct fb_http_req_header_s{
 	char *host;
 	char *referer;
 	char *user_agent;
+	char *path;
 } fb_http_req_header_t;
 
 typedef struct fb_http_res_header_s{
@@ -29,6 +29,7 @@ void fb_parse_http_header(char *buf, fb_http_req_header_t *header_info);
 void fb_parse_query_string(char *req, fb_query_string_t **str, int len);
 int fb_get_http_header_line(int fd, char *buf, int len);
 int read_line(int fd, char *buf, int len);
-int fb_put_http_response(int fd, fb_http_res_header_t *header_info);
+void fb_put_http_response(int fd, fb_http_req_header_t *req_header_info, fb_http_res_header_t *res_header_info);
+void fb_write_res_header_line(int fd, char *buf, int len);
 
 #endif

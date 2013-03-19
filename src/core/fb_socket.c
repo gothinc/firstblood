@@ -63,10 +63,13 @@ void fb_connect(int conn_fd){
 	fb_http_res_header_t http_res_header;
 
 	memset(&http_req_header, '\0', sizeof(http_req_header));
+	memset(&http_res_header, '\0', sizeof(http_res_header));
 
 	fb_get_http_request(conn_fd, &http_req_header);
-	if(fb_put_http_response(conn_fd, &http_res_header) <= 0){
-		printf("http response error\n");
+	if(http_req_header.path && http_req_header.path[0] == '/'){
+		fb_put_http_response(conn_fd, &http_req_header, &http_res_header);
+	}else{
+		printf("path error\n");
 	}
 }
 
