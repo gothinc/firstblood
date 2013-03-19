@@ -5,4 +5,5 @@
 #include <fb_socket.h>
 #include <fb_http.h>
 #include <fb_string.h>
+#include <fb_resource.h>
 #endif

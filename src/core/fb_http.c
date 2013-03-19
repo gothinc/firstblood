@@ -3,20 +3,35 @@
 
 void fb_put_http_response(int fd, fb_http_req_header_t *req_header_info, fb_http_res_header_t *res_header_info){
 	char buf[1024];				
+	int source_fd, source_num;
 	memset(buf, 0, sizeof(buf));
 
-	if(strcmp(req_header_info->path, "/index.php") == 0){
+	char real_path[128];
+	memset(real_path, 0, sizeof(real_path));
+	if((source_fd = fb_check_resource(req_header_info->path, real_path)) > 0){
 		sprintf(buf, "HTTP/1.1 %d OK\r\n", 200);
 		fb_write_res_header_line(fd, buf, strlen(buf));
 		fb_write_res_header_line(fd, "\r\n", 2);
-		sprintf(buf, "<html>\n<head>\n<title>hi,guy</title>\n</head>\n<body>\n<div>\n<p>welcome to zhaojiangwei</p>\n</div>\n</body>\n</html>\n");
-		fb_write_res_header_line(fd, buf, strlen(buf));
-	}else{
+
+		while((source_num = read(source_fd, buf, sizeof(buf) - 1)) > 0){
+			buf[source_num] = '\0';
+			fb_write_res_header_line(fd, buf, strlen(buf));
+			lseek(source_fd, source_num, SEEK_SET);
+		}
+
+		close(source_fd);
+	}else if((source_fd = fb_get_404()) > 0){
 		sprintf(buf, "HTTP/1.1 %d Page Not Found\r\n", 404);
 		fb_write_res_header_line(fd, buf, strlen(buf));
 		fb_write_res_header_line(fd, "\r\n", 2);
-		sprintf(buf, "<html>\n<head>\n<title>404 Page Not Found</title>\n</head>\n<body>\n<div>\n<p>fuck</p>\n</div>\n</body>\n</html>\n");
-		fb_write_res_header_line(fd, buf, strlen(buf));
+
+		while((source_num = read(source_fd, buf, sizeof(buf) - 1)) > 0){
+			buf[source_num] = '\0';
+			fb_write_res_header_line(fd, buf, strlen(buf));
+			lseek(source_fd, source_num, SEEK_SET);
+		}
+
+		close(source_fd);
 	}
 }
 
