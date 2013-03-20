@@ -1,6 +1,7 @@
 #include <fb_core.h>
 #include <fb_config.h>
 
+/*regist signal SIGCHLD*/
 static void sig_child(int signo);
 
 int fb_open_socket(){
@@ -12,6 +13,7 @@ int fb_open_socket(){
 	i = 1;
 	if(setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, (void*) &i, sizeof(i) ) < 0) return _FB_ERROR_;
 
+	/*init memory*/
 	memset(&sockaddr, 0, sizeof(sockaddr));
 	
 	sockaddr.sin_family = AF_INET;
@@ -21,6 +23,7 @@ int fb_open_socket(){
 	if(bind(listen_fd, (struct sockaddr *) &sockaddr, sizeof(sockaddr)) == -1) return _FB_ERROR_;
 	if(listen(listen_fd, 10) == -1) return _FB_ERROR_;
 
+	/*regist signal SIGCHLD*/
 	if(signal(SIGCHLD, sig_child) == SIG_ERR){
 		printf("SIGCHLD error\n");
 		return -1;
@@ -33,16 +36,21 @@ int fb_open_socket(){
 			break;
 		}
 
+		/*fork child process*/
 		if((child_pid = fork()) < 0){
 			printf("fork error\n");
 			break;
 		}else if(child_pid == 0){
 			/*child process*/
+
+			/*close listen_fd copied from father*/
 			if(close(listen_fd) < 0){
 				printf("child close listen_fd error\n");
 			}
 
+			/*process connection*/
 			fb_connect(conn_fd);
+
 			if(close(conn_fd) < 0){
 				printf("child close conn_fd error\n");
 			}
@@ -58,24 +66,34 @@ int fb_open_socket(){
 	return 0;
 }
 
+/*process connection*/
 void fb_connect(int conn_fd){
+	/*http_request_header*/
 	fb_http_req_header_t http_req_header;
+
+	/*http_response_header*/
 	fb_http_res_header_t http_res_header;
 
 	memset(&http_req_header, '\0', sizeof(http_req_header));
 	memset(&http_res_header, '\0', sizeof(http_res_header));
 
+	/*get_request*/
 	fb_get_http_request(conn_fd, &http_req_header);
+
+	printf("%s\n", http_req_header.path);
+	/*process request, put response*/
 	if(http_req_header.path && http_req_header.path[0] == '/'){
 		fb_put_http_response(conn_fd, &http_req_header, &http_res_header);
 	}else{
 		printf("path error\n");
 	}
 
+	/*free memory*/
 	free_req_header(&http_req_header);
 	free_res_header(&http_res_header);
 }
 
+/*CATCH SIGCHLD*/
 static void sig_child(int signo){
 	if(signo != SIGCHLD){
 		printf("catch error\n");

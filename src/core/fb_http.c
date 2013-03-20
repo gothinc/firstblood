@@ -1,41 +1,61 @@
 #include <fb_core.h>
 #include <fb_config.h>
 
+/*process request and put response*/
 void fb_put_http_response(int fd, fb_http_req_header_t *req_header_info, fb_http_res_header_t *res_header_info){
-	char buf[1024];				
-	int source_fd, source_num;
-	memset(buf, 0, sizeof(buf));
+	int source_fd;
 
+	/*request file path*/
 	char real_path[128];
 	memset(real_path, 0, sizeof(real_path));
-	if((source_fd = fb_check_resource(req_header_info->path, real_path)) > 0){
-		sprintf(buf, "HTTP/1.1 %d OK\r\n", 200);
-		fb_write_res_header_line(fd, buf, strlen(buf));
-		fb_write_res_header_line(fd, "\r\n", 2);
 
-		while((source_num = read(source_fd, buf, sizeof(buf) - 1)) > 0){
-			buf[source_num] = '\0';
-			fb_write_res_header_line(fd, buf, strlen(buf));
-			lseek(source_fd, source_num, SEEK_SET);
-		}
+	if((source_fd = fb_check_resource(req_header_info->path, real_path)) > 0){
+		/*if request file exsits*/
+		fb_out_put_http_header(fd, 200);
+
+		/*invoke source_file*/
+		fb_out_put_source(source_fd, fd);
 
 		close(source_fd);
 	}else if((source_fd = fb_get_404()) > 0){
-		sprintf(buf, "HTTP/1.1 %d Page Not Found\r\n", 404);
-		fb_write_res_header_line(fd, buf, strlen(buf));
-		fb_write_res_header_line(fd, "\r\n", 2);
+		/*if request file is not exsits*/
+		fb_out_put_error_header(fd, 404);
 
-		while((source_num = read(source_fd, buf, sizeof(buf) - 1)) > 0){
-			buf[source_num] = '\0';
-			fb_write_res_header_line(fd, buf, strlen(buf));
-			lseek(source_fd, source_num, SEEK_SET);
-		}
+		/*invoke default 404 page*/
+		fb_out_put_source(source_fd, fd);
 
 		close(source_fd);
 	}
 }
 
-void fb_write_res_header_line(int fd, char *buf, int len){
+void fb_out_put_error_header(int fd, int status){
+	char buf[64];
+	memset(buf, 0, sizeof(buf));
+
+	switch(status){
+		case 400:
+			sprintf(buf, "HTTP/1.1 %d Permission Invalid\r\n", status);
+			break;
+		case 404:
+		default:
+			sprintf(buf, "HTTP/1.1 %d Page Not Found\r\n", status);
+			break;
+	}
+
+	fb_write_res_content(fd, buf, strlen(buf));
+	fb_write_res_content(fd, "\r\n", 2);
+}
+
+void fb_out_put_http_header(int fd, int status){
+	char buf[64];
+	memset(buf, 0, sizeof(buf));
+
+	sprintf(buf, "HTTP/1.1 %d OK\r\n", status);
+	fb_write_res_content(fd, buf, strlen(buf));
+	fb_write_res_content(fd, "\r\n", 2);
+}
+
+void fb_write_res_content(int fd, char *buf, int len){
 	int ret = 0;
 	if((ret = send(fd, buf, len, 0)) <= 0){
 		printf("send error\n");
@@ -121,6 +141,14 @@ void fb_parse_http_header(char *buf, fb_http_req_header_t *header_info){
 						fb_parse_query_string(temp, header_info->query_string, strlen(temp));
 					}else{
 						header_info->query_string = NULL;
+					}
+				}else if(temp[0] == '/'){
+					if(strlen(temp) == 1){
+						header_info->path = (char *) malloc(sizeof(_FB_DEFAULT_PAGE));
+						strncpy(header_info->path, _FB_DEFAULT_PAGE, sizeof(_FB_DEFAULT_PAGE));
+					}else{
+						header_info->path = (char *) malloc(strlen(temp) + 1);
+						strncpy(header_info->path, temp, strlen(temp) + 1);
 					}
 				}
 
