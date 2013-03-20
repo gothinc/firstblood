@@ -14,7 +14,7 @@ void fb_put_http_response(int fd, fb_http_req_header_t *req_header_info, fb_http
 		fb_out_put_http_header(fd, 200);
 
 		/*invoke source_file*/
-		fb_out_put_source(source_fd, fd);
+		fb_out_put_source(source_fd, fd, real_path);
 
 		close(source_fd);
 	}else if((source_fd = fb_get_404()) > 0){
@@ -22,7 +22,7 @@ void fb_put_http_response(int fd, fb_http_req_header_t *req_header_info, fb_http
 		fb_out_put_error_header(fd, 404);
 
 		/*invoke default 404 page*/
-		fb_out_put_source(source_fd, fd);
+		fb_out_put_source(source_fd, fd, real_path);
 
 		close(source_fd);
 	}
@@ -56,6 +56,8 @@ void fb_out_put_http_header(int fd, int status){
 }
 
 void fb_write_res_content(int fd, char *buf, int len){
+	if(len <= 0 || buf == NULL) return;
+
 	int ret = 0;
 	if((ret = send(fd, buf, len, 0)) <= 0){
 		printf("send error\n");

@@ -80,7 +80,6 @@ void fb_connect(int conn_fd){
 	/*get_request*/
 	fb_get_http_request(conn_fd, &http_req_header);
 
-	printf("%s\n", http_req_header.path);
 	/*process request, put response*/
 	if(http_req_header.path && http_req_header.path[0] == '/'){
 		fb_put_http_response(conn_fd, &http_req_header, &http_res_header);
