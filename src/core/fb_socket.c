@@ -71,6 +71,9 @@ void fb_connect(int conn_fd){
 	}else{
 		printf("path error\n");
 	}
+
+	free_req_header(&http_req_header);
+	free_res_header(&http_res_header);
 }
 
 static void sig_child(int signo){

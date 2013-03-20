@@ -74,6 +74,14 @@ void fb_get_http_request(int fd, fb_http_req_header_t *header_info){
 		}
 	}
 
+}
+
+void free_res_header(fb_http_res_header_t *header_info){
+	if(header_info->server) free(header_info->server);
+	if(header_info->connection) free(header_info->connection);
+}
+
+void free_req_header(fb_http_req_header_t *header_info){
 	if(header_info->query_string){
 		while(*header_info->query_string){
 			free((*header_info->query_string)->key);
@@ -82,6 +90,14 @@ void fb_get_http_request(int fd, fb_http_req_header_t *header_info){
 			header_info->query_string ++;
 		}
 	}
+
+	if(header_info->path) free(header_info->path);
+	if(header_info->method) free(header_info->method);
+	if(header_info->connection) free(header_info->connection);
+	if(header_info->cookie) free(header_info->cookie);
+	if(header_info->host) free(header_info->host);
+	if(header_info->referer) free(header_info->referer);
+	if(header_info->user_agent) free(header_info->user_agent);
 }
 
 void fb_parse_http_header(char *buf, fb_http_req_header_t *header_info){

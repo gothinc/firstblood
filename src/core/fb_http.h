@@ -31,5 +31,7 @@ int fb_get_http_header_line(int fd, char *buf, int len);
 int read_line(int fd, char *buf, int len);
 void fb_put_http_response(int fd, fb_http_req_header_t *req_header_info, fb_http_res_header_t *res_header_info);
 void fb_write_res_header_line(int fd, char *buf, int len);
+void free_req_header(fb_http_req_header_t *header_info);
+void free_res_header(fb_http_res_header_t *header_info);
 
 #endif
