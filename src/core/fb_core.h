@@ -6,4 +6,5 @@
 #include <fb_http.h>
 #include <fb_string.h>
 #include <fb_resource.h>
+#include <fb_daemon.h>
 #endif

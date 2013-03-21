@@ -4,7 +4,7 @@
 	</head>
 	<body>
 		<div>
-			<p>i am sorry, this page not found on zhaojiangwei's server</p>
+			<p>sorry, this page not found in heaven</p>
 		</div>
 	</body>
 </html>

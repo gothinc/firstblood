@@ -13,15 +13,20 @@ CORE_DEPS = src/core/fb_config.h \
 		src/core/fb_socket.h \
 		src/core/fb_resource.h \
 		src/core/fb_string.h \
+		src/core/fb_daemon.h \
 		src/os/fb_linux_config.h
 
-fb: firstblood.o fb_socket.o fb_http.o fb_string.o fb_resource.o
-	$(LINK) -o firstblood firstblood.o fb_socket.o fb_http.o fb_string.o fb_resource.o \
+fb: firstblood.o fb_socket.o fb_http.o fb_string.o fb_resource.o fb_daemon.o
+	$(LINK) -o firstblood firstblood.o fb_socket.o fb_http.o fb_string.o fb_resource.o fb_daemon.o \
 	-lpthread -lcrypt -lpcre -lcrypto -lcrypto -lz
 
 fb_http.o: src/core/fb_http.c $(CORE_DEPS)
 	$(CC) -c $(CFLAGS) $(ALL_INCS) \
 	-o fb_http.o src/core/fb_http.c
+
+fb_daemon.o: src/core/fb_daemon.c $(CORE_DEPS)
+	$(CC) -c $(CFLAGS) $(ALL_INCS) \
+	-o fb_daemon.o src/core/fb_daemon.c
 
 fb_resource.o: src/core/fb_resource.c $(CORE_DEPS)
 	$(CC) -c $(CFLAGS) $(ALL_INCS) \

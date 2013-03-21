@@ -4,7 +4,7 @@
 	</head>
 	<body>
 		<div>
-			<p>welcome zhaojiangwei's first web page</p>
+			<p>welcome to heaven!</p>
 		</div>
 	</body>
 </html>

@@ -28,6 +28,9 @@ int fb_open_socket(){
 		printf("SIGCHLD error\n");
 		return -1;
 	}
+	
+	/*daemonize process*/
+	fb_daemonize();
 
 	while(1){
 		conn_fd = accept(listen_fd, (struct sockaddr *) NULL, NULL);

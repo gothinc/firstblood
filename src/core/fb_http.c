@@ -22,7 +22,7 @@ void fb_put_http_response(int fd, fb_http_req_header_t *req_header_info, fb_http
 		fb_out_put_error_header(fd, 404);
 
 		/*invoke default 404 page*/
-		fb_out_put_source(source_fd, fd, real_path);
+		fb_out_put_source(source_fd, fd, _FB_404_PATH);
 
 		close(source_fd);
 	}
