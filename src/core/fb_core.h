@@ -7,4 +7,5 @@
 #include <fb_string.h>
 #include <fb_resource.h>
 #include <fb_daemon.h>
+#include <fb_cgi.h>
 #endif

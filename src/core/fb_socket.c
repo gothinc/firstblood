@@ -100,7 +100,9 @@ static void sig_child(int signo){
 	if(signo != SIGCHLD){
 		printf("catch error\n");
 	}else{
-		if(waitpid(-1, NULL, WNOHANG) <= 0){
+		//if(waitpid(-1, &a, WNOHANG) <= 0){
+		if(waitpid(-1, NULL, 0) <= 0){
+			printf("errno:%d\n", errno);
 			printf("child exit error\n");
 		}
 	}

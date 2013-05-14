@@ -4,6 +4,7 @@
 /*process request and put response*/
 void fb_put_http_response(int fd, fb_http_req_header_t *req_header_info, fb_http_res_header_t *res_header_info){
 	int source_fd;
+	char buf[2048000];
 
 	/*request file path*/
 	char real_path[128];
@@ -12,9 +13,12 @@ void fb_put_http_response(int fd, fb_http_req_header_t *req_header_info, fb_http
 	if((source_fd = fb_check_resource(req_header_info->path, real_path)) > 0){
 		/*if request file exsits*/
 		fb_out_put_http_header(fd, 200);
+		if(fb_invoke_cgi(real_path, buf) == 0){
+			fb_write_res_content(fd, buf, strlen(buf));
+		}
 
 		/*invoke source_file*/
-		fb_out_put_source(source_fd, fd, real_path);
+		//fb_out_put_source(source_fd, fd, real_path);
 
 		close(source_fd);
 	}else if((source_fd = fb_get_404()) > 0){
