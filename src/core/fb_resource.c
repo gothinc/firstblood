@@ -2,17 +2,13 @@
 #include <fb_config.h>
 
 void fb_out_put_source(int source_fd, int fd, char *path){
-	int source_num, file_len;
+	int source_num;
 	char buf[1024];
 	memset(buf, 0, sizeof(buf));
-	file_len = fb_get_file_len(path);
 
-	while((file_len > 0) && ((source_num = read(source_fd, buf, sizeof(buf) - 1)) > 0)){
+	//while((file_len > 0) && ((source_num = read(source_fd, buf, sizeof(buf) - 1)) > 0)){
+	while((source_num = read(source_fd, buf, sizeof(buf) - 1)) > 0)
 		fb_write_res_content(fd, buf, source_num);
-
-		lseek(source_fd, source_num, SEEK_SET);
-		file_len -= source_num;
-	}
 }
 
 /*check file exsits and readable*/
