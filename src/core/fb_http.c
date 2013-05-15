@@ -11,14 +11,24 @@ void fb_put_http_response(int fd, fb_http_req_header_t *req_header_info, fb_http
 	memset(real_path, 0, sizeof(real_path));
 
 	if((source_fd = fb_check_resource(req_header_info->path, real_path)) > 0){
-		/*if request file exsits*/
-		fb_out_put_http_header(fd, 200);
-		if(fb_invoke_cgi(real_path, buf) == 0){
-			fb_write_res_content(fd, buf, strlen(buf));
+		if(fb_check_img(real_path)){
+			/*invoke source_file*/
+			fb_out_put_http_res_status(fd, 200);
+			fb_send_res_headers(fd, real_path, fb_get_file_len(real_path));
+			fb_write_res_content(fd, "\r\n", 2);
+			fb_out_put_source(source_fd, fd, real_path);
+		}else{
+			/*if request file exsits*/
+			if(fb_invoke_cgi(real_path, buf) == 0){
+				fb_out_put_http_res_status(fd, 200);
+				fb_send_res_headers(fd, real_path, strlen(buf));
+				fb_write_res_content(fd, "\r\n", 2);
+				fb_write_res_content(fd, buf, strlen(buf));
+			}else{
+				fb_out_put_http_res_status(fd, 404);
+				fb_write_res_content(fd, "\r\n", 2);
+			}
 		}
-
-		/*invoke source_file*/
-		//fb_out_put_source(source_fd, fd, real_path);
 
 		close(source_fd);
 	}else if((source_fd = fb_get_404()) > 0){
@@ -30,6 +40,68 @@ void fb_put_http_response(int fd, fb_http_req_header_t *req_header_info, fb_http
 
 		close(source_fd);
 	}
+}
+
+void fb_send_res_headers(int fd, char *real_path, int len){
+	char mime_type[256];
+	char *ranges = "Accept-Ranges: bytes\r\n";
+	char length[64];
+	char len_char[8];
+
+	sprintf(len_char, "%d", len);
+	strcpy(length, "Content-Length: ");
+	strcat(length, len_char);
+	strcat(length, "\r\n");
+
+	if(fb_get_content_type(real_path, mime_type)){
+		fb_write_res_content(fd, mime_type, strlen(mime_type));
+	}
+
+	fb_write_res_content(fd, ranges, strlen(ranges));
+	fb_write_res_content(fd, length, strlen(length)); 
+}
+
+int fb_check_img(char *path){
+	char *type;
+	if(path != NULL){
+		type = strrchr(path, '.');
+		if(strcmp(type, ".jpg") == 0 || strcmp(type, ".jpeg") == 0 || strcmp(type, ".png") == 0 || strcmp(type, ".gif") == 0 || strcmp(type, ".ico") == 0)
+			return 1;
+	}
+
+	return 0;
+}
+
+int fb_get_content_type(char *path, char *header_type){
+	char *type;
+	if(path != NULL){
+		type = strrchr(path, '.');
+		if(strcmp(type, ".jpg") == 0 || strcmp(type, ".jpeg") == 0){
+			type = "image/jpeg";
+		}else if(strcmp(type, ".png") == 0){
+			type = "image/png";
+		}else if(strcmp(type, ".gif") == 0){
+			type = "image/gif";
+		}else if(strcmp(type, ".ico") == 0){
+			type = "image/ico";
+		}else if(strcmp(type, ".php") == 0 || strcmp(type, "html") == 0){
+			type = "text/html";
+		}else if(strcmp(type, ".swf") == 0){
+			type = "application/x-shockwave-flash";
+		}else if(strcmp(type, ".js") == 0){
+			type = "application/x-javascript";
+		}else if(strcmp(type, ".css") == 0){
+			type = "text/css";
+		}
+
+		strcpy(header_type, "Content-Type: ");
+		strcat(header_type, type);
+		strcat(header_type, "\r\n");
+
+		return 1;
+	}
+
+	return 0;
 }
 
 void fb_out_put_error_header(int fd, int status){
@@ -50,13 +122,17 @@ void fb_out_put_error_header(int fd, int status){
 	fb_write_res_content(fd, "\r\n", 2);
 }
 
-void fb_out_put_http_header(int fd, int status){
+void fb_out_put_http_res_status(int fd, int status){
 	char buf[64];
 	memset(buf, 0, sizeof(buf));
 
-	sprintf(buf, "HTTP/1.1 %d OK\r\n", status);
+	if(status == 200){
+		sprintf(buf, "HTTP/1.1 %d OK\r\n", status);
+	}else if(status == 404){
+		sprintf(buf, "HTTP/1.1 %d 404NOT FIND\r\n", status);
+	}
+
 	fb_write_res_content(fd, buf, strlen(buf));
-	fb_write_res_content(fd, "\r\n", 2);
 }
 
 void fb_write_res_content(int fd, char *buf, int len){

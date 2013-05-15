@@ -18,7 +18,7 @@ CORE_DEPS = src/core/fb_config.h \
 		src/os/fb_linux_config.h
 
 fb: firstblood.o fb_socket.o fb_http.o fb_string.o fb_resource.o fb_daemon.o fb_cgi.o
-	$(LINK) -o firstblood firstblood.o fb_socket.o fb_http.o fb_string.o fb_resource.o fb_daemon.o fb_cgi.o \
+	$(LINK) -g -o firstblood firstblood.o fb_socket.o fb_http.o fb_string.o fb_resource.o fb_daemon.o fb_cgi.o \
 	-lpthread -lcrypt -lpcre -lcrypto -lcrypto -lz
 
 fb_cgi.o: src/core/fb_cgi.c $(CORE_DEPS)

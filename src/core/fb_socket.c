@@ -30,7 +30,7 @@ int fb_open_socket(){
 	}
 	
 	/*daemonize process*/
-	fb_daemonize();
+	//fb_daemonize();
 
 	while(1){
 		conn_fd = accept(listen_fd, (struct sockaddr *) NULL, NULL);
@@ -50,6 +50,11 @@ int fb_open_socket(){
 			if(close(listen_fd) < 0){
 				printf("child close listen_fd error\n");
 			}
+
+			/*if(signal(SIGCHLD, SIG_DFL) == SIG_ERR){
+				printf("RESET SIGCHLD ERROR\n");
+				exit(1);
+			}*/
 
 			/*process connection*/
 			fb_connect(conn_fd);
@@ -100,10 +105,10 @@ static void sig_child(int signo){
 	if(signo != SIGCHLD){
 		printf("catch error\n");
 	}else{
-		//if(waitpid(-1, &a, WNOHANG) <= 0){
-		if(waitpid(-1, NULL, 0) <= 0){
-			printf("errno:%d\n", errno);
-			printf("child exit error\n");
+		if(waitpid(-1, NULL, WNOHANG) <= 0){
+			printf("request handler exit error\n");
+		}else{
+			printf("request handler exit\n");
 		}
 	}
 }

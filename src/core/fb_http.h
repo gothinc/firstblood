@@ -33,7 +33,10 @@ void fb_put_http_response(int fd, fb_http_req_header_t *req_header_info, fb_http
 void fb_write_res_content(int fd, char *buf, int len);
 void free_req_header(fb_http_req_header_t *header_info);
 void free_res_header(fb_http_res_header_t *header_info);
-void fb_out_put_http_header(int fd, int status);
+void fb_out_put_http_res_status(int fd, int status);
 void fb_out_put_error_header(int fd, int status);
+int fb_get_content_type(char *path, char *type);
+void fb_send_res_headers(int fd, char *real_path, int len);
+int fb_check_img(char *path);
 
 #endif
