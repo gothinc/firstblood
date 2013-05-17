@@ -4,6 +4,6 @@
 #define DEFAULT_CGI "PHP"
 #define PHP_PATH "/data1/webserver/php/bin/php"
 
-int fb_invoke_cgi(char *path, char *buf);
+int fb_invoke_cgi(char *path, char *buf, fb_http_req_header_t *req_header_info);
 
 #endif

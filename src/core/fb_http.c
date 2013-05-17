@@ -19,7 +19,7 @@ void fb_put_http_response(int fd, fb_http_req_header_t *req_header_info, fb_http
 			fb_out_put_source(source_fd, fd, real_path);
 		}else{
 			/*if request file exsits*/
-			if(fb_invoke_cgi(real_path, buf) == 0){
+			if(fb_invoke_cgi(real_path, buf, req_header_info) == 0){
 				fb_out_put_http_res_status(fd, 200);
 				fb_send_res_headers(fd, real_path, strlen(buf));
 				fb_write_res_content(fd, "\r\n", 2);
@@ -304,4 +304,25 @@ int read_line(int fd, char *buf, int len){
 	}
 	buf[num] = '\0';
 	return num;
+}
+
+char *implode_query_string(fb_query_string_t **q){
+	char *s = (char *)malloc(256);
+	s[0] = 0;
+
+	while(q && *q){
+		strcat(s, (*q)->key);
+		strcat(s, "=");
+		strcat(s, (*q)->value);
+		strcat(s, "&");
+		q ++;
+	}
+
+	if(strlen(s) > 0){
+		s[strlen(s) - 1] = 0;
+		return s;
+	}else{
+		free(s);
+		return (char *)NULL;
+	}
 }

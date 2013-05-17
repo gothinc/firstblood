@@ -38,5 +38,6 @@ void fb_out_put_error_header(int fd, int status);
 int fb_get_content_type(char *path, char *type);
 void fb_send_res_headers(int fd, char *real_path, int len);
 int fb_check_img(char *path);
+char *implode_query_string(fb_query_string_t **q);
 
 #endif

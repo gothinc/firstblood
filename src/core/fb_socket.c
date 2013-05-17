@@ -30,7 +30,7 @@ int fb_open_socket(){
 	}
 	
 	/*daemonize process*/
-	fb_daemonize();
+	//fb_daemonize();
 
 	while(1){
 		conn_fd = accept(listen_fd, (struct sockaddr *) NULL, NULL);
