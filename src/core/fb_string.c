@@ -20,3 +20,22 @@ char *link_str(char *pre, char *last, char *ret){
 	strcat(ret, last);
 	return ret;
 }
+
+int str_pos(char *s, char f){
+	int i;
+	for(i = 0; s[i] != 0; i ++){
+		if(s[i] == f) return (i + 1);
+	}
+
+	return 0;
+}
+
+int str_rpos(char *s, char f){
+	int i, len;
+	len = strlen(s);
+	for(i = len - 1; i >= 0; i --){
+		if(s[i] == f) return (i + 1);
+	}
+
+	return 0;
+}
