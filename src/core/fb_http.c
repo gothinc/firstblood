@@ -204,7 +204,7 @@ void free_req_header(fb_http_req_header_t *header_info){
 
 void fb_parse_http_header(char *buf, fb_http_req_header_t *header_info){
 	static int first = 1;
-	int len, i, j;
+	int len, i, j, path_split;
 	len = strlen(buf);
 	char temp[64];
 	memset(temp, '\0', sizeof(temp));
@@ -219,7 +219,7 @@ void fb_parse_http_header(char *buf, fb_http_req_header_t *header_info){
 				}else if(temp[0] == '~'){
 					if(strlen(temp) > 1){
 						fb_del_before(temp, 1, strlen(temp));
-						header_info->query_string = (fb_query_string_t **) malloc(sizeof(fb_query_string_t *) * 10);
+						if(header->info->query_string == 0) header_info->query_string = (fb_query_string_t **) malloc(sizeof(fb_query_string_t *) * 10);
 						fb_parse_query_string(temp, header_info->query_string, strlen(temp));
 					}else{
 						header_info->query_string = NULL;
@@ -229,8 +229,14 @@ void fb_parse_http_header(char *buf, fb_http_req_header_t *header_info){
 						header_info->path = (char *) malloc(sizeof(_FB_DEFAULT_PAGE));
 						strncpy(header_info->path, _FB_DEFAULT_PAGE, sizeof(_FB_DEFAULT_PAGE));
 					}else{
-						header_info->path = (char *) malloc(strlen(temp) + 1);
-						strncpy(header_info->path, temp, strlen(temp) + 1);
+						if(_URL_REWRITE_){
+							if((path_split = str_rpos(temp, '/')) > 1){
+								if(header->info->query_string == 0) header_info->query_string = (fb_query_string_t **) malloc(sizeof(fb_query_string_t *) * 10);
+							}
+						}else{
+							header_info->path = (char *) malloc(strlen(temp) + 1);
+							strncpy(header_info->path, temp, strlen(temp) + 1);
+						}
 					}
 				}
 
@@ -238,8 +244,15 @@ void fb_parse_http_header(char *buf, fb_http_req_header_t *header_info){
 			}else if(buf[i] == '?'){
 				temp[j] = '\0';
 				/*todo parse path*/
-				header_info->path = (char *) malloc(strlen(temp) + 1);
-				strncpy(header_info->path, temp, strlen(temp) + 1);
+				if(_URL_REWRITE_){
+					if((path_split = str_rpos(temp, '/')) > 1){
+						fb_parse_path_info(header_info->path_info, temp);
+					}
+				}else{
+					header_info->path = (char *) malloc(strlen(temp) + 1);
+					strncpy(header_info->path, temp, strlen(temp) + 1);
+				}
+
 				j = 0;
 				temp[j ++] = '~';
 			}else{
@@ -250,6 +263,13 @@ void fb_parse_http_header(char *buf, fb_http_req_header_t *header_info){
 		first = 0;
 	}else{
 		/*todo other header_info*/
+	}
+}
+
+void fb_parse_path_info(char *path_info, char *temp){
+	if(str_rpos(temp, '/') > 1){
+		int i;
+		for(i = 1; temp[i] != 0 && temp[i] != '/'; i ++);
 	}
 }
 

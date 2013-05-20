@@ -15,6 +15,7 @@ typedef struct fb_http_req_header_s{
 	char *referer;
 	char *user_agent;
 	char *path;
+	char *path_info;
 } fb_http_req_header_t;
 
 typedef struct fb_http_res_header_s{
