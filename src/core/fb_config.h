@@ -6,6 +6,7 @@
 #endif
 
 #define _URL_REWRITE_ 0
+#define _REWRITE_DEFAULT_ "index.php"
 #define _FB_ERROR_ -1
 //#define _FB_ROOT_PATH "/opensource/firstblood/data"
 #define _FB_ROOT_PATH "/data0/yinbei"

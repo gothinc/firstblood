@@ -16,6 +16,8 @@ typedef struct fb_http_req_header_s{
 	char *user_agent;
 	char *path;
 	char *path_info;
+	char *request_uri;
+	char is_default_path;
 } fb_http_req_header_t;
 
 typedef struct fb_http_res_header_s{
@@ -39,6 +41,8 @@ void fb_out_put_error_header(int fd, int status);
 int fb_get_content_type(char *path, char *type);
 void fb_send_res_headers(int fd, char *real_path, int len);
 int fb_check_img(char *path);
-char *implode_query_string(fb_query_string_t **q);
+void fb_parse_path_info(fb_http_req_header_t *header_info, char *temp);
+void fb_assemble_uri(fb_http_req_header_t * header_info);
+int implode_query_string(fb_query_string_t **query_string, char *ret);
 
 #endif

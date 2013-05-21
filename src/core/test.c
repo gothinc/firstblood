@@ -6,15 +6,10 @@ char *kobe(char **q);
 
 int
 main(int argc, char *argv[]){
-	char *s;
-	char **q;
-
-	s = kobe(q);
-	if(s){
-		printf("3\n");
-	}else{
-		printf("4\n");
-	}
+	enum x{a,b,c,md};
+	enum x e;
+	e = a;
+	printf("%d\n", e);
 }
 
 char *kobe(char **q){

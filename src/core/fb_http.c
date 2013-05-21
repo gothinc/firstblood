@@ -204,7 +204,7 @@ void free_req_header(fb_http_req_header_t *header_info){
 
 void fb_parse_http_header(char *buf, fb_http_req_header_t *header_info){
 	static int first = 1;
-	int len, i, j, path_split;
+	int len, i, j;
 	len = strlen(buf);
 	char temp[64];
 	memset(temp, '\0', sizeof(temp));
@@ -219,39 +219,22 @@ void fb_parse_http_header(char *buf, fb_http_req_header_t *header_info){
 				}else if(temp[0] == '~'){
 					if(strlen(temp) > 1){
 						fb_del_before(temp, 1, strlen(temp));
-						if(header->info->query_string == 0) header_info->query_string = (fb_query_string_t **) malloc(sizeof(fb_query_string_t *) * 10);
+						if(header_info->query_string == 0) header_info->query_string = (fb_query_string_t **) malloc(sizeof(fb_query_string_t *) * 10);
 						fb_parse_query_string(temp, header_info->query_string, strlen(temp));
 					}else{
 						header_info->query_string = NULL;
 					}
 				}else if(temp[0] == '/'){
-					if(strlen(temp) == 1){
-						header_info->path = (char *) malloc(sizeof(_FB_DEFAULT_PAGE));
-						strncpy(header_info->path, _FB_DEFAULT_PAGE, sizeof(_FB_DEFAULT_PAGE));
-					}else{
-						if(_URL_REWRITE_){
-							if((path_split = str_rpos(temp, '/')) > 1){
-								if(header->info->query_string == 0) header_info->query_string = (fb_query_string_t **) malloc(sizeof(fb_query_string_t *) * 10);
-							}
-						}else{
-							header_info->path = (char *) malloc(strlen(temp) + 1);
-							strncpy(header_info->path, temp, strlen(temp) + 1);
-						}
-					}
+					fb_parse_path_info(header_info, temp);
 				}
 
 				j = 0;
 			}else if(buf[i] == '?'){
 				temp[j] = '\0';
+				
 				/*todo parse path*/
-				if(_URL_REWRITE_){
-					if((path_split = str_rpos(temp, '/')) > 1){
-						fb_parse_path_info(header_info->path_info, temp);
-					}
-				}else{
-					header_info->path = (char *) malloc(strlen(temp) + 1);
-					strncpy(header_info->path, temp, strlen(temp) + 1);
-				}
+				if(temp[0] == '/')
+					fb_parse_path_info(header_info, temp);
 
 				j = 0;
 				temp[j ++] = '~';
@@ -260,16 +243,111 @@ void fb_parse_http_header(char *buf, fb_http_req_header_t *header_info){
 			}
 		}
 
+		fb_assemble_uri(header_info);
 		first = 0;
 	}else{
 		/*todo other header_info*/
 	}
 }
 
-void fb_parse_path_info(char *path_info, char *temp){
-	if(str_rpos(temp, '/') > 1){
-		int i;
-		for(i = 1; temp[i] != 0 && temp[i] != '/'; i ++);
+void fb_assemble_uri(fb_http_req_header_t *header_info){
+	char uri[256];
+	char query_string[256];
+	uri[0] = 0;
+
+	if(!header_info->is_default_path && header_info->path)
+		strcpy(uri, header_info->path);
+
+	if(header_info->path_info)
+		strcat(uri, header_info->path_info);
+
+	if(header_info->query_string){
+		if(implode_query_string(header_info->query_string, query_string))
+			strcat(uri, "?");
+			strcat(uri, query_string);
+	}
+
+	if(uri[0] != 0){
+		header_info->request_uri = (char *) malloc(strlen(uri) + 1);
+		strcpy(header_info->request_uri, uri);
+	}
+}
+
+int implode_query_string(fb_query_string_t **query_string, char *ret){
+	char s[256];
+	s[0] = 0;
+	if(!query_string) return 0;
+	while(*query_string){
+		if((*query_string)->key && (*query_string)->value){
+			strcat(s, (*query_string)->key);
+			strcat(s, "=");
+			strcat(s, (*query_string)->value);
+			strcat(s, "&");
+		}
+
+		query_string ++;
+	}
+
+	if(s[0] != 0) s[strlen(s) - 1] = 0;
+	strcpy(ret, s);
+	return 1;
+}
+
+void fb_parse_path_info(fb_http_req_header_t *header_info, char *temp){
+	if(temp[0] != '/') return;
+
+	char path[128];
+	char path_info[128];
+	int i, j, len;
+
+	if((len = strlen(temp)) == 1){
+		header_info->is_default_path = 1;
+		header_info->path = (char *) malloc(sizeof(_FB_DEFAULT_PAGE));
+		strncpy(header_info->path, _FB_DEFAULT_PAGE, sizeof(_FB_DEFAULT_PAGE));
+		header_info->path_info = (char *) malloc(4);
+		strcpy(header_info->path_info, "/");
+	}else{
+		path[0] = '/';
+		for(i = 1, len = strlen(temp); i < len && temp[i] != '/'; i ++){
+			path[i] = temp[i];
+		}
+
+		path[i] = 0;
+		
+		if(strcmp("/index.php", path) != 0){
+			if(strcmp("/login", path) == 0){
+				header_info->is_default_path = 1;
+
+				header_info->path = (char *) malloc(sizeof(_FB_DEFAULT_PAGE));
+				strncpy(header_info->path, _FB_DEFAULT_PAGE, sizeof(_FB_DEFAULT_PAGE));
+
+				i = 0;
+			}else{
+				for(; i < len; i ++){
+					path[i] = temp[i];
+				}
+
+				path[i] = 0;
+				header_info->path = (char *) malloc(strlen(path) + 1);
+				strncpy(header_info->path, path, strlen(path) + 1);
+
+				return;
+			}
+		}else{
+			header_info->is_default_path = 0;
+			header_info->path = (char *) malloc(strlen(path) + 1);
+			strncpy(header_info->path, path, strlen(path) + 1);
+		}
+
+		if(i < len){
+			for(j = 0; i < len; i ++, j ++){
+				path_info[j] = temp[i];
+			}
+
+			path_info[j] = 0;
+			header_info->path_info = (char *) malloc(strlen(path_info) + 1);
+			strncpy(header_info->path_info, path_info, strlen(path_info) + 1);
+		}
 	}
 }
 
@@ -326,23 +404,3 @@ int read_line(int fd, char *buf, int len){
 	return num;
 }
 
-char *implode_query_string(fb_query_string_t **q){
-	char *s = (char *)malloc(256);
-	s[0] = 0;
-
-	while(q && *q){
-		strcat(s, (*q)->key);
-		strcat(s, "=");
-		strcat(s, (*q)->value);
-		strcat(s, "&");
-		q ++;
-	}
-
-	if(strlen(s) > 0){
-		s[strlen(s) - 1] = 0;
-		return s;
-	}else{
-		free(s);
-		return (char *)NULL;
-	}
-}
