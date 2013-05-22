@@ -18,6 +18,8 @@ typedef struct fb_http_req_header_s{
 	char *path_info;
 	char *request_uri;
 	char is_default_path;
+	int  remote_port;
+	int  remote_addr;
 } fb_http_req_header_t;
 
 typedef struct fb_http_res_header_s{

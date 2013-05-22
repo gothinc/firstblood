@@ -6,8 +6,10 @@ static void sig_child(int signo);
 
 int fb_open_socket(){
 	int listen_fd, i, conn_fd;
+	socklen_t client_addr_len;
 	pid_t child_pid;
 	fb_sockaddr_in sockaddr;
+	fb_sockaddr_in client_addr;
 	
 	if((listen_fd = fb_socket(AF_INET, SOCK_STREAM, 0)) == -1) return _FB_ERROR_;
 	i = 1;
@@ -15,6 +17,8 @@ int fb_open_socket(){
 
 	/*init memory*/
 	memset(&sockaddr, 0, sizeof(sockaddr));
+	memset(&client_addr, 0, sizeof(client_addr));
+	client_addr_len = sizeof(client_addr);
 	
 	sockaddr.sin_family = AF_INET;
 	sockaddr.sin_port = htons(_FB_LISTENED_FD_);
@@ -33,7 +37,7 @@ int fb_open_socket(){
 	//fb_daemonize();
 
 	while(1){
-		conn_fd = accept(listen_fd, (struct sockaddr *) NULL, NULL);
+		conn_fd = accept(listen_fd, (struct sockaddr *) &client_addr, &client_addr_len);
 		if(conn_fd < 0){
 			printf("connect error\n");
 			break;
@@ -57,7 +61,7 @@ int fb_open_socket(){
 			}*/
 
 			/*process connection*/
-			fb_connect(conn_fd);
+			fb_connect(conn_fd, client_addr);
 
 			if(close(conn_fd) < 0){
 				printf("child close conn_fd error\n");
@@ -70,12 +74,12 @@ int fb_open_socket(){
 		}
 	}
 
-	close(listen_fd);	
+	close(listen_fd);
 	return 0;
 }
 
 /*process connection*/
-void fb_connect(int conn_fd){
+void fb_connect(int conn_fd, fb_sockaddr_in client_addr){
 	/*http_request_header*/
 	fb_http_req_header_t http_req_header;
 
@@ -84,6 +88,9 @@ void fb_connect(int conn_fd){
 
 	memset(&http_req_header, '\0', sizeof(http_req_header));
 	memset(&http_res_header, '\0', sizeof(http_res_header));
+
+	http_req_header.remote_port = client_addr.sin_port;
+	http_req_header.remote_addr = client_addr.sin_addr.s_addr;
 
 	/*get_request*/
 	fb_get_http_request(conn_fd, &http_req_header);

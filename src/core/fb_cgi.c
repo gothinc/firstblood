@@ -8,6 +8,9 @@ fb_invoke_cgi(char *path, char *buf, fb_http_req_header_t *req_header_info){
 	char *envp[32];
 	char *args[2];
 	char tmp[1024];
+	char port[8];
+	char remote_port[8];
+	char remote_addr[64];
 	char query_string[256];
 
 	memset(envp, 0, sizeof(envp));
@@ -35,10 +38,15 @@ fb_invoke_cgi(char *path, char *buf, fb_http_req_header_t *req_header_info){
 		args[1] = path;
 
 		i = 0;
+		sprintf(port, "%d", _FB_LISTENED_FD_);
+		sprintf(remote_port, "%d", req_header_info->remote_port);
+		sprintf(remote_addr, "%d", req_header_info->remote_addr);
 		envp[i ++] = "REQUEST_METHOD=GET";
-		envp[i ++] = "REMOTE_ADDR=127.0.0.1";
-		envp[i ++] = "REMOTE_PORT=8089";
+		envp[i ++] = "SERVER_ADDR=127.0.0.1";
 		if((envp[i] = link_str("DOCUMENT_ROOT=", _FB_ROOT_PATH, envp[i])) != NULL) i ++;
+		if((envp[i] = link_str("SERVER_PORT=", port, envp[i])) != NULL) i ++;
+		if((envp[i] = link_str("REMOTE_PORT=", remote_port, envp[i])) != NULL) i ++;
+		if((envp[i] = link_str("REMOTE_ADDR=", remote_addr, envp[i])) != NULL) i ++;
 		if(implode_query_string(req_header_info->query_string, query_string)){
 			envp[i] = link_str("QUERY_STRING=", query_string, envp[i]);
 		}else{
