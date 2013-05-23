@@ -62,6 +62,7 @@ fb_invoke_cgi(char *path, char *buf, fb_http_req_header_t *req_header_info){
 		envp[i] = NULL;
 		
 		execve(PHP_PATH, args, envp);
+		exit(1);
 	}else{
 		close(fd[1]);
 		while((n = read(fd[0], tmp, sizeof(tmp) - 1)) > 0){
