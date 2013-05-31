@@ -12,9 +12,17 @@ int fb_del_before(char *s, int del, int len){
 	return 1;
 }
 
+void fb_print_r(char *s[], int n){
+	int i;
+	for(i = 0; i < n; i ++){
+		printf("%s\n", s[i]);
+	}
+}
+
 //ret must be pointer variable(in turn, it is not a char[])
 char *link_str(char *pre, char *last){
-	if(pre == NULL || last == NULL) return (char *) 0;
+	if(pre == NULL) return (char *) 0;
+	if(last == NULL) return pre;
 
 	char *ret = NULL;
 	ret = (char *)malloc(256);

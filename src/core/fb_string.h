@@ -5,5 +5,6 @@ int fb_del_before(char *s, int del, int len);
 char *link_str(char *pre, char *last);
 int str_pos(char *s, char f);
 int str_rpos(char *s, char f);
+void fb_print_r(char *s[], int n);
 
 #endif
