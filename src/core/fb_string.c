@@ -13,11 +13,14 @@ int fb_del_before(char *s, int del, int len){
 }
 
 //ret must be pointer variable(in turn, it is not a char[])
-char *link_str(char *pre, char *last, char *ret){
+char *link_str(char *pre, char *last){
 	if(pre == NULL || last == NULL) return (char *) 0;
+
+	char *ret = NULL;
 	ret = (char *)malloc(256);
 	strcpy(ret, pre);
 	strcat(ret, last);
+
 	return ret;
 }
 

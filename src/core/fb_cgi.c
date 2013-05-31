@@ -43,22 +43,20 @@ fb_invoke_cgi(char *path, char *buf, fb_http_req_header_t *req_header_info){
 		sprintf(remote_addr, "%d", req_header_info->remote_addr);
 		envp[i ++] = "REQUEST_METHOD=GET";
 		envp[i ++] = "SERVER_ADDR=127.0.0.1";
-		if((envp[i] = link_str("DOCUMENT_ROOT=", _FB_ROOT_PATH, envp[i])) != NULL) i ++;
-		if((envp[i] = link_str("SERVER_PORT=", port, envp[i])) != NULL) i ++;
-		if((envp[i] = link_str("REMOTE_PORT=", remote_port, envp[i])) != NULL) i ++;
-		if((envp[i] = link_str("REMOTE_ADDR=", remote_addr, envp[i])) != NULL) i ++;
+		//envp[i ++] = link_str("DOCUMENT_ROOT=", _FB_ROOT_PATH);
+		envp[i ++] = link_str("DOCUMENT_ROOT=", "3");
+		envp[i ++] = link_str("SERVER_PORT=", port);
+		envp[i ++] = link_str("REMOTE_PORT=", remote_port);
+		envp[i ++] = link_str("REMOTE_ADDR=", remote_addr);
 		if(implode_query_string(req_header_info->query_string, query_string)){
-			envp[i] = link_str("QUERY_STRING=", query_string, envp[i]);
+			envp[i ++] = link_str("QUERY_STRING=", query_string);
 		}else{
-			envp[i] = "QUERY_STRING=";
+			envp[i ++] = "QUERY_STRING=";
 		}
-		i ++;
 
-		if((envp[i] = link_str("PATH=", getenv("PATH"), envp[i])) != NULL) i ++;
-		if((envp[i] = link_str("PATH_INFO=", req_header_info->path_info, envp[i])) != NULL) i ++;
-		if((envp[i] = link_str("REQUEST_URI=", req_header_info->request_uri, envp[i])) == NULL)
-			envp[i] = "REQUEST_URI=";
-		i ++;
+		envp[i ++] = link_str("PATH=", getenv("PATH"));
+		envp[i ++] = link_str("PATH_INFO=", req_header_info->path_info);
+		envp[i ++] = link_str("REQUEST_URI=", req_header_info->request_uri);
 		envp[i] = NULL;
 		
 		execve(PHP_PATH, args, envp);
