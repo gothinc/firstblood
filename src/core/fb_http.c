@@ -300,6 +300,9 @@ void fb_parse_path_info(fb_http_req_header_t *header_info, char *temp){
 	char path_info[128];
 	int i, j, len;
 
+	header_info->script_name = (char *) malloc(sizeof(_FB_DEFAULT_PAGE));
+	strncpy(header_info->script_name, _FB_DEFAULT_PAGE, sizeof(_FB_DEFAULT_PAGE));
+
 	if((len = strlen(temp)) == 1){
 		header_info->is_default_path = 1;
 		header_info->path = (char *) malloc(sizeof(_FB_DEFAULT_PAGE));
@@ -313,7 +316,7 @@ void fb_parse_path_info(fb_http_req_header_t *header_info, char *temp){
 		}
 
 		path[i] = 0;
-		
+
 		if(strcmp("/index.php", path) != 0){
 			if(strcmp("/login", path) == 0){
 				header_info->is_default_path = 1;

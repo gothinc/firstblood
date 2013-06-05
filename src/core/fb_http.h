@@ -16,6 +16,7 @@ typedef struct fb_http_req_header_s{
 	char *user_agent;
 	char *path;
 	char *path_info;
+	char *script_name;
 	char *request_uri;
 	char is_default_path;
 	int  remote_port;
