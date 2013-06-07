@@ -20,10 +20,12 @@ void fb_put_http_response(int fd, fb_http_req_header_t *req_header_info, fb_http
 		}else{
 			/*if request file exsits*/
 			if(fb_invoke_cgi(real_path, buf, req_header_info) == 0){
-				fb_out_put_http_res_status(fd, 200);
-				fb_send_res_headers(fd, real_path, strlen(buf));
-				fb_write_res_content(fd, "\r\n", 2);
-				fb_write_res_content(fd, buf, strlen(buf));
+				if(!(fb_if_redirect(buf))){
+					fb_out_put_http_res_status(fd, 200);
+					fb_send_res_headers(fd, real_path, strlen(buf));
+					fb_write_res_content(fd, "\r\n", 2);
+					fb_write_res_content(fd, buf, strlen(buf));
+				}
 			}else{
 				fb_out_put_http_res_status(fd, 404);
 				fb_write_res_content(fd, "\r\n", 2);
@@ -40,6 +42,31 @@ void fb_put_http_response(int fd, fb_http_req_header_t *req_header_info, fb_http
 
 		close(source_fd);
 	}
+}
+
+char *
+fb_if_redirect(char *buf){
+	if(!buf) return 0;
+
+	char *tmp, path[64], *redirect;
+	int i;
+
+	if((tmp = strchr(buf, "Location:")) == NULL) return 0;
+	if((tmp = strchr(tmp, "http://")) == NULL || tmp[7] == 0) return 0;
+
+	for(i = 7; tmp[i] != 32 && tmp[i] != 0; i ++);
+	tmp[i] = 0;
+	tmp[5] = tmp[6] = '-';
+
+	redirect = malloc(64);
+	if((tmp = strchr(tmp, '/')) == NULL){
+		redirect[0] = '/';
+		redirect[1] = 0;
+	}else{
+		strcpy(redirect, tmp);
+	}
+
+	return redirect;
 }
 
 void fb_send_res_headers(int fd, char *real_path, int len){
