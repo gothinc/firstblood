@@ -6,7 +6,7 @@ fb_invoke_cgi(char *path, char *buf, fb_http_req_header_t *req_header_info){
 	int pid, n, i;
 	int fd[2];
 	char *envp[64];
-	char *args[3];
+	char *args[10];
 	char tmp[1024];
 	char port[8];
 	char remote_port[8];
@@ -33,6 +33,8 @@ fb_invoke_cgi(char *path, char *buf, fb_http_req_header_t *req_header_info){
 
 			close(fd[1]);
 		}
+
+		chdir(PHP_ROOT_PATH);
 			
 		args[0] = DEFAULT_CGI;
 		args[1] = path;
@@ -44,13 +46,13 @@ fb_invoke_cgi(char *path, char *buf, fb_http_req_header_t *req_header_info){
 		sprintf(remote_addr, "%d", req_header_info->remote_addr);
 		envp[i ++] = "REQUEST_METHOD=GET";
 		envp[i ++] = "SERVER_ADDR=127.0.0.1";
+		envp[i ++] = "REDIRECT_STATUS=1";
 		envp[i ++] = link_str("DOCUMENT_ROOT=", _FB_ROOT_PATH);
 		envp[i ++] = link_str("SERVER_PORT=", port);
 		envp[i ++] = link_str("REMOTE_PORT=", remote_port);
 		envp[i ++] = link_str("REMOTE_ADDR=", remote_addr);
 		envp[i ++] = link_str("SCRIPT_NAME=", req_header_info->script_name);
 		envp[i ++] = link_str("SCRIPT_FILENAME=", link_str(_FB_ROOT_PATH, req_header_info->script_name));
-		envp[i ++] = "PATH_TRANSLATED=redirect:/index.php/";
 		if(implode_query_string(req_header_info->query_string, query_string)){
 			envp[i ++] = link_str("QUERY_STRING=", query_string);
 		}else{
@@ -68,7 +70,7 @@ fb_invoke_cgi(char *path, char *buf, fb_http_req_header_t *req_header_info){
 		close(fd[1]);
 		while((n = read(fd[0], tmp, sizeof(tmp) - 1)) > 0){
 			tmp[n] = 0;
-			strcat(buf,tmp);	
+			strcat(buf,tmp);
 		}
 
 		close(fd[0]);
