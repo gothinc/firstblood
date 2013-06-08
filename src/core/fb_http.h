@@ -39,7 +39,7 @@ void fb_put_http_response(int fd, fb_http_req_header_t *req_header_info, fb_http
 void fb_write_res_content(int fd, char *buf, int len);
 void free_req_header(fb_http_req_header_t *header_info);
 void free_res_header(fb_http_res_header_t *header_info);
-void fb_out_put_http_res_status(int fd, int status);
+void fb_out_put_http_res_status(int fd, int status, char *des);
 void fb_out_put_error_header(int fd, int status);
 int fb_get_content_type(char *path, char *type);
 void fb_send_res_headers(int fd, char *real_path, int len);
@@ -47,5 +47,8 @@ int fb_check_img(char *path);
 void fb_parse_path_info(fb_http_req_header_t *header_info, char *temp);
 void fb_assemble_uri(fb_http_req_header_t * header_info);
 int implode_query_string(fb_query_string_t **query_string, char *ret);
+char *fb_if_redirect(char *buf);
+void fb_send_headers(int fd, char *buf);
+void fb_out_put_http_3xx_status(int fd, char *redirect);
 
 #endif

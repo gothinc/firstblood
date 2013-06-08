@@ -4,7 +4,8 @@
 /*process request and put response*/
 void fb_put_http_response(int fd, fb_http_req_header_t *req_header_info, fb_http_res_header_t *res_header_info){
 	int source_fd;
-	char buf[2048000];
+	char *buf = malloc(2048000);
+	char *redirect, *pre;
 
 	/*request file path*/
 	char real_path[128];
@@ -13,21 +14,30 @@ void fb_put_http_response(int fd, fb_http_req_header_t *req_header_info, fb_http
 	if((source_fd = fb_check_resource(req_header_info->path, real_path)) > 0){
 		if(fb_check_img(real_path)){
 			/*invoke source_file*/
-			fb_out_put_http_res_status(fd, 200);
+			fb_out_put_http_res_status(fd, 200, "OK");
 			fb_send_res_headers(fd, real_path, fb_get_file_len(real_path));
 			fb_write_res_content(fd, "\r\n", 2);
 			fb_out_put_source(source_fd, fd, real_path);
 		}else{
 			/*if request file exsits*/
 			if(fb_invoke_cgi(real_path, buf, req_header_info) == 0){
-				if(!(fb_if_redirect(buf))){
-					fb_out_put_http_res_status(fd, 200);
-					fb_send_res_headers(fd, real_path, strlen(buf));
+				if(!(redirect = fb_if_redirect(buf))){
+					fb_out_put_http_res_status(fd, 200, "OK");
+					
+					pre = strstr(buf, "\r\n\r\n");
+					*pre = 0;
+					pre += 4;
+
+					fb_send_headers(fd, buf);
 					fb_write_res_content(fd, "\r\n", 2);
-					fb_write_res_content(fd, buf, strlen(buf));
+					fb_write_res_content(fd, pre, strlen(pre));
+				}else{
+					fb_out_put_http_3xx_status(fd, redirect);
+					fb_send_headers(fd, buf);
+					fb_write_res_content(fd, "\r\n", 2);
 				}
 			}else{
-				fb_out_put_http_res_status(fd, 404);
+				fb_out_put_http_res_status(fd, 404, "NOT FOUND");
 				fb_write_res_content(fd, "\r\n", 2);
 			}
 		}
@@ -44,29 +54,44 @@ void fb_put_http_response(int fd, fb_http_req_header_t *req_header_info, fb_http
 	}
 }
 
+void
+fb_out_put_http_3xx_status(int fd, char *redirect){
+	int status;
+	char *des;
+	
+	des = strchr(redirect, ' ');
+	*des ++ = 0;
+	status = atoi(redirect);
+	fb_out_put_http_res_status(fd, status, des);
+}
+
 char *
 fb_if_redirect(char *buf){
-	if(!buf) return 0;
+	if(!buf) return (char *)0;
 
-	char *tmp, path[64], *redirect;
-	int i;
+	char *status, *pre;
+	status = malloc(64);
 
-	if((tmp = strchr(buf, "Location:")) == NULL) return 0;
-	if((tmp = strchr(tmp, "http://")) == NULL || tmp[7] == 0) return 0;
+	if((pre = strstr(buf, "Status:")) == NULL) return (char *)0;
+	sscanf(pre, "%*[^ ] %[^\r\n]", status);
+	if(status[0] == '3' || (status[0] == ' ' && status[1] == '3')) return status;
+	return (char *)0;
+}
 
-	for(i = 7; tmp[i] != 32 && tmp[i] != 0; i ++);
-	tmp[i] = 0;
-	tmp[5] = tmp[6] = '-';
+void fb_send_headers(int fd, char *buf){
+	char back[2048];
+	char *cur, *send;
 
-	redirect = malloc(64);
-	if((tmp = strchr(tmp, '/')) == NULL){
-		redirect[0] = '/';
-		redirect[1] = 0;
-	}else{
-		strcpy(redirect, tmp);
+	strcpy(back, buf);
+	cur = strtok(back, "\r\n");
+	while(cur){
+		if(strstr(cur, "Status") == NULL){
+			send = link_str(cur, "\r\n");
+			fb_write_res_content(fd, send, strlen(send));
+		}
+
+		cur = strtok(NULL, "\r\n");
 	}
-
-	return redirect;
 }
 
 void fb_send_res_headers(int fd, char *real_path, int len){
@@ -149,16 +174,11 @@ void fb_out_put_error_header(int fd, int status){
 	fb_write_res_content(fd, "\r\n", 2);
 }
 
-void fb_out_put_http_res_status(int fd, int status){
+void fb_out_put_http_res_status(int fd, int status, char *des){
 	char buf[64];
+
 	memset(buf, 0, sizeof(buf));
-
-	if(status == 200){
-		sprintf(buf, "HTTP/1.1 %d OK\r\n", status);
-	}else if(status == 404){
-		sprintf(buf, "HTTP/1.1 %d 404NOT FIND\r\n", status);
-	}
-
+	sprintf(buf, "HTTP/1.1 %d %s\r\n", status, des);
 	fb_write_res_content(fd, buf, strlen(buf));
 }
 
